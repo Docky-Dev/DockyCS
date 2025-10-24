@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Counter - MrBeast</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css">
+
+  <style>
+    body {
+      background: #000000;
+      color: white;
+      font-family: "Roboto Black", sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #00ffcc;
+    }
+
+    select {
+      background: #111;
+      color: #00ffcc;
+      border: 2px solid #00ffcc;
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-size: 1.2em;
+      outline: none;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: 0.2s;
+    }
+
+    select:hover {
+      background: #00ffcc;
+      color: #000;
+    }
+
+    .odometer-container {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+    }
+
+    .odometer {
+      font-family: "Roboto Black", sans-serif !important;
+      font-size: 20em;
+      color: #ffffff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .blur-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 132px;
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      background: linear-gradient(to bottom, rgb(0, 0, 0) 10%, rgba(0, 0, 0, 0) 100%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .blur-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 105px;
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      background: linear-gradient(to top, rgb(0, 0, 0) 10%, rgba(0, 0, 0, 0) 100%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .odometer.odometer-animating-up, 
+    .odometer.odometer-animating-down,
+    .odometer.odometer-animating .odometer-ribbon-inner {
+      transition-duration: 1s !important; 
+    }
+
+    .odometer, 
+    .odometer-digit, 
+    .odometer-digit-inner, 
+    .odometer-ribbon, 
+    .odometer-ribbon-inner {
+      line-height: 1.5em !important;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="title">Subscribers Count</h1>
+
+  <select id="mode">
+    <option value="subscriberCount" selected>Subscribers Count</option>
+    <option value="viewCount">Total Views Count</option>
+  </select>
+
+  <div class="odometer-container">
+    <div class="blur-top"></div>
+    <div id="counter" class="odometer">0</div>
+    <div class="blur-bottom"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+
+  <script>
+    const apiURL = "https://backend.mixerno.space/api/youtube/estv3/UCX6OQ3DkcsbYNE6H8uQQuVA";
+    const counter = document.getElementById("counter");
+    const modeSelect = document.getElementById("mode");
+    const title = document.getElementById("title");
+
+    let currentMode = "subscriberCount";
+
+    modeSelect.addEventListener("change", () => {
+      currentMode = modeSelect.value;
+      title.textContent = currentMode === "subscriberCount" ? "Subscribers Count" : "Total Views Count";
+      fetchData();
+    });
+
+    async function fetchData() {
+      try {
+        const response = await fetch(apiURL);
+        const data = await response.json();
+        if (data.success && data.items && data.items[0].statistics) {
+          const stats = data.items[0].statistics;
+          const value = currentMode === "subscriberCount" ? stats.subscriberCount : stats.viewCount;
+          counter.innerHTML = value;
+        }
+      } catch (error) {
+        console.error("Erreur API :", error);
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 1000);
+  </script>
+
+</body>
+</html>
