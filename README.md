@@ -32,6 +32,7 @@ L’interface est fluide, animée avec **Odometer.js**, et mise à jour automati
 ## 💡 Remerciements
 
 Idée de **[DevXCat](https://github.com/DevXCat)**
+
 DockyCS a été développé dans le cadre de la suite **Docky**.
 
 ---
