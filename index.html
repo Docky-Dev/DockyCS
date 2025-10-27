@@ -1,151 +1,137 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Counter - MrBeast</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css">
-  <style>
-    body {
-      background: #000000;
-      color: white;
-      font-family: "Roboto Black", sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal YouTube Counter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-minimal.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+    <style>
+        body {
+            background: #000000;
+            color: #fff;
+            font-family: "Roboto Black", sans-serif !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
 
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-      color: #00ffcc;
-    }
+        .search-input {
+            font-family: "Roboto Black", sans-serif !important;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 5px;
+        }
 
-    select {
-      background: #111;
-      color: #00ffcc;
-      border: 2px solid #00ffcc;
-      border-radius: 10px;
-      padding: 10px 15px;
-      font-size: 1.2em;
-      outline: none;
-      cursor: pointer;
-      margin-bottom: 20px;
-      transition: 0.2s;
-    }
+        .counter-section {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
 
-    select:hover {
-      background: #00ffcc;
-      color: #000;
-    }
+        .odometer {
+            font-family: "Roboto Black", sans-serif !important;
+            font-size: 10em;
+        }
 
-    .odometer-container {
-      position: relative;
-      display: inline-block;
-      overflow: hidden;
-    }
+        .channel-info {
+            font-size: 7em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-    .odometer {
-      font-family: "Roboto Black", sans-serif !important;
-      font-size: 20em;
-      color: #ffffff;
-      position: relative;
-      z-index: 1;
-    }
-
-    .blur-top {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 132px;
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
-      background: linear-gradient(to bottom, rgb(0, 0, 0) 10%, rgba(0, 0, 0, 0) 100%);
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .blur-bottom {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 105px;
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
-      background: linear-gradient(to top, rgb(0, 0, 0) 10%, rgba(0, 0, 0, 0) 100%);
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .odometer.odometer-animating-up, 
-    .odometer.odometer-animating-down,
-    .odometer.odometer-animating .odometer-ribbon-inner {
-      transition-duration: 2.13s !important; 
-    }
-
-    .odometer, 
-    .odometer-digit, 
-    .odometer-digit-inner, 
-    .odometer-ribbon, 
-    .odometer-ribbon-inner {
-      line-height: 1.5em !important;
-    }
-  </style>
+        .channel-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 100%;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <input type="text" class="search-input" id="channel-input" placeholder="Enter YouTube channel name or URL" onkeypress="handleKeyPress(event)">
+        <div class="counter-section" id="counter-section" style="display: none;">
+            <div class="channel-info">
+                <img id="channel-avatar" class="channel-avatar" src="" alt="Channel Avatar">
+                <h2 id="channel-name"></h2>
+            </div>
+            <div id="subscriber-count" class="odometer">0</div>
+        </div>
+    </div>
 
-  <h1 id="title">Subscribers Count</h1>
+    <script>
+        const API_BASE_URL = 'https://backend.mixerno.space/api/youtube/estv3/';
+        const SEARCH_API_URL = 'https://mixerno.space/api/youtube-channel-counter/search/';
+        let channelId = null;
+        let intervalId = null;
+        let odometer = null;
 
-  <select id="mode">
-    <option value="subscriberCount" selected>Subscribers Count</option>
-    <option value="viewCount">Total Views Count</option>
-  </select>
-
-  <div class="odometer-container">
-    <div class="blur-top"></div>
-    <div id="counter" class="odometer">0</div>
-    <div class="blur-bottom"></div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
-
-  <script>
-    const apiURL = "https://backend.mixerno.space/api/youtube/estv3/UCX6OQ3DkcsbYNE6H8uQQuVA";
-    const counter = document.getElementById("counter");
-    const modeSelect = document.getElementById("mode");
-    const title = document.getElementById("title");
-
-    let currentMode = "subscriberCount";
-
-    modeSelect.addEventListener("change", () => {
-      currentMode = modeSelect.value;
-      title.textContent = currentMode === "subscriberCount" ? "Subscribers Count" : "Total Views Count";
-      fetchData();
-    });
-
-    async function fetchData() {
-      try {
-        const response = await fetch(apiURL);
-        const data = await response.json();
-        if (data.success && data.items && data.items[0].statistics) {
-          const stats = data.items[0].statistics;
-          const value = currentMode === "subscriberCount" ? stats.subscriberCount : stats.viewCount;
-          counter.innerHTML = value;
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                searchChannel();
+            }
         }
-      } catch (error) {
-        console.error("Erreur API :", error);
-      }
-    }
 
-    fetchData();
-    setInterval(fetchData, 2000);
-  </script>
+        async function searchChannel() {
+            const channelName = document.getElementById('channel-input').value.trim();
+            if (!channelName) return;
 
+            try {
+                const response = await fetch(`${SEARCH_API_URL}${encodeURIComponent(channelName)}`);
+                const data = await response.json();
+                
+                if (data.list?.length > 0) {
+                    const channel = data.list[0];
+                    channelId = channel[2];
+                    startCounter();
+                }
+            } catch (error) {
+                console.error("Error searching channel:", error);
+            }
+        }
+
+        function startCounter() {
+            document.getElementById('counter-section').style.display = 'block';
+            
+            if (!odometer) {
+                odometer = new Odometer({
+                    el: document.getElementById('subscriber-count'),
+                    value: 0,
+                    format: '(,ddd)',
+                    theme: 'minimal'
+                });
+            }
+
+            fetchStatsData();
+            if (intervalId) clearInterval(intervalId);
+            intervalId = setInterval(fetchStatsData, 2000);
+        }
+
+        async function fetchStatsData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}${channelId}`);
+                const data = await response.json();
+                
+                if (data?.items?.[0]) {
+                    const channel = data.items[0];
+                    document.getElementById('channel-avatar').src = channel.snippet.thumbnails.default.url;
+                    document.getElementById('channel-name').textContent = channel.snippet.title;
+                    odometer.update(channel.statistics.subscriberCount);
+                }
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+            }
+        }
+    </script>
 </body>
 </html>
