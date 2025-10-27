@@ -1,8 +1,5 @@
 # 🧮 DockyCS (DockyCount Stream)
 
-> **Statut : Archivé**
-> Ce projet n’est plus maintenu. Il reste disponible à titre de démonstration et d’inspiration.
-
 ---
 
 ## 📖 Description
@@ -34,9 +31,3 @@ L’interface est fluide, animée avec **Odometer.js**, et mise à jour automati
 Idée de **[DevXCat](https://github.com/DevXCat)**
 
 DockyCS a été développé dans le cadre de la suite **Docky**.
-
----
-
-## 🗂️ Statut du projet
-
-🟠 **Archivé** — Ce code n’est plus mis à jour, mais reste disponible pour les curieux et les développeurs souhaitant explorer la logique du compteur.
